@@ -25,4 +25,4 @@ curl  localhost:7654/location/218.79.21.57
 
 ## and more
 
-我买了个域名，把它运行起来了: https://ip4/dev/
+我买了个域名，把它运行起来了: https://ip4.dev/
