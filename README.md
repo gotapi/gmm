@@ -22,3 +22,7 @@ curl  localhost:7654/location/218.79.21.57
 {"ip":"218.79.21.57","continent_code":"AS","country":"China","latitude":31.0442,"longitude":121.4054,"country_code":"CN","country_code3":"CHN","string":"","asn":4812,"organization":"-"}
 ```
 最后，再次感谢一下maxmind；如果是国内对精准IP数据有需求，推荐 https://www.ipip.net/ 。
+
+## and more
+
+我买了个域名，把它运行起来了: https://ip4/dev/
