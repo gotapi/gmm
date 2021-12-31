@@ -328,13 +328,7 @@ func main() {
 			c.JSON(500, er)
 			return
 		}
-		geo.Organization = "-"
-		_, er = json.Marshal(geo)
 		c.JSON(200, geo)
-		//c.Data(200, "application/json", bytes)
-		//c.JSON(200, gin.H{
-		//	"message": c.Param("ip"),
-		//	"data":    js})
 	})
 	r.GET("/location/", func(c *gin.Context) {
 		ipString := getIp(c.Request)
