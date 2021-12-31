@@ -9,7 +9,7 @@ gmm引入了gin这个golang的web framework，你也可以修改一下，去掉�
 
 最后的最后，尴尬的是，重写的时候高并发的时候依然会卡住，qps高的有时会急剧降到200个左右。。。不过依然足以满足日常查询用了。
 
-这个项目的docker镜像，我发布到了renlu/gmm 镜像了,工作在7654端口下:
+这个项目的docker镜像，我发布到了docker.io的renlu/gmm 镜像了,工作在7654端口下:
 ```
 docker run -p7654:7654 renlu/gmm 
 ```
