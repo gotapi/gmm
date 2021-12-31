@@ -238,9 +238,12 @@ type IpGeo struct {
 	Longitude     float64 `json:"longitude"`
 	CountryCode   string  `json:"country_code"`
 	CountryCode3  string  `json:"country_code3"`
-	Tz            string  `json:"string"`
+	Tz            string  `json:"tz"`
 	Asn           int     `json:"asn"`
 	Organization  string  `json:"organization"`
+	Region        string  `json:"region"`
+	RegionCode    string  `json:"region_code"`
+	City          string  `json:"city"`
 }
 
 func Init() {
