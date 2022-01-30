@@ -311,7 +311,7 @@ func handleIpReq(c *gin.Context) {
 	c.Header("gmm-version", "1.0.1")
 	var ip = getIp(c.Request)
 	var format = strings.ToLower(c.Request.URL.Query().Get("format"))
-	var jsonp = c.Request.URL.Query().Get("jsonp")
+	var jsonp = c.Request.URL.Query().Get("callback")
 	var err error
 	if "json" == format {
 		c.JSON(200, HttpResult{Status: 200, Data: ip})
@@ -341,7 +341,7 @@ func handleIp(c *gin.Context, ipString string) {
 		return
 	}
 	if isPrivateIP(ip) {
-		c.JSON(200, &IpGeo{Organization: "-", Asn: 0, Country: "-",
+		c.JSONP(200, &IpGeo{Organization: "-", Asn: 0, Country: "-",
 			Latitude: 0, Longitude: 0, CountryCode: "-", CountryCode3: "", Tz: "", Ip: ipString})
 		return
 	}
@@ -350,8 +350,9 @@ func handleIp(c *gin.Context, ipString string) {
 		c.JSON(500, er)
 		return
 	}
+
 	_, er = json.Marshal(geo)
-	c.JSON(200, geo)
+	c.JSONP(200, geo)
 }
 
 func main() {
@@ -377,6 +378,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.GET("/myip", handleIpReq)
+	r.GET("/myip/", handleIpReq)
 	r.GET("/location/:ip", func(c *gin.Context) {
 		var ip = c.Param("ip")
 		handleIp(c, ip)
@@ -386,5 +388,5 @@ func main() {
 		handleIp(c, ipString)
 	})
 	r.Run(":7654")
-
+	select {}
 }
