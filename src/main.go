@@ -230,6 +230,10 @@ import "C"
 
 var privateIPBlocks []*net.IPNet
 
+type HttpResult struct {
+	Status int    `json:"status"`
+	Data   string `json:"data"`
+}
 type IpGeo struct {
 	Ip            string  `json:"ip"`
 	ContinentCode string  `json:"continent_code"`
@@ -238,9 +242,12 @@ type IpGeo struct {
 	Longitude     float64 `json:"longitude"`
 	CountryCode   string  `json:"country_code"`
 	CountryCode3  string  `json:"country_code3"`
-	Tz            string  `json:"string"`
+	Tz            string  `json:"tz"`
 	Asn           int     `json:"asn"`
 	Organization  string  `json:"organization"`
+	Region        string  `json:"region"`
+	RegionCode    string  `json:"region_code"`
+	City          string  `json:"city"`
 }
 
 func Init() {
@@ -300,11 +307,61 @@ func getIp(r *http.Request) string {
 	return xRealIpStr
 }
 
+func handleIpReq(c *gin.Context) {
+	c.Header("gmm-version", "1.0.1")
+	var ip = getIp(c.Request)
+	requestWith := c.Request.Header.Get("X-Requested-With")
+	var jsonp = c.Request.URL.Query().Get("jsonp")
+	var err error
+	if len(jsonp) > 0 {
+		var targetJsonp = jsonp
+		if len(jsonp) > 16 {
+			targetJsonp = jsonp[:16]
+		}
+		var res = targetJsonp + "(\"" + ip + "\");"
+		_, err = c.Writer.Write([]byte(res))
+		return
+	}
+	if requestWith == "XMLHttpRequest" {
+		c.JSON(200, HttpResult{Status: 200, Data: ip})
+		return
+	} else {
+		_, err = c.Writer.Write([]byte(ip))
+	}
+	if err != nil {
+		fmt.Printf("write data failed:%v\n", err)
+		return
+	}
+}
+func handleIp(c *gin.Context, ipString string) {
+	ip := net.ParseIP(ipString)
+	if ip == nil {
+		c.JSON(500, gin.H{
+			"message": "ip invalid",
+		})
+		return
+	}
+	if isPrivateIP(ip) {
+		c.JSON(200, &IpGeo{Organization: "-", Asn: 0, Country: "-",
+			Latitude: 0, Longitude: 0, CountryCode: "-", CountryCode3: "", Tz: "", Ip: ipString})
+		return
+	}
+	geo, er := query(ipString)
+	if er != nil {
+		c.JSON(500, er)
+		return
+	}
+	_, er = json.Marshal(geo)
+	c.JSON(200, geo)
+}
+
 func main() {
 	var dbDir string
-	flag.StringVar(&dbDir, "db_dir", "/var/db/GeoIP/", "directory path of maxmind database")
+	flag.StringVar(&dbDir, "dbdir", "/var/db/GeoIP/", "directory path of maxmind database")
+	flag.Parse()
 	asnFileLocation := dbDir + "GeoLite2-ASN.mmdb"
 	cityFileLocation := dbDir + "GeoLite2-City.mmdb"
+	fmt.Printf("asnFile:%s\n", asnFileLocation)
 	cityFile := C.CString(cityFileLocation)
 	asnFile := C.CString(asnFileLocation)
 	openRes := C.openMM(cityFile, asnFile)
@@ -320,39 +377,14 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.GET("/myip", handleIpReq)
 	r.GET("/location/:ip", func(c *gin.Context) {
 		var ip = c.Param("ip")
-		geo, er := query(ip)
-
-		if er != nil {
-			c.JSON(500, er)
-			return
-		}
-		c.JSON(200, geo)
+		handleIp(c, ip)
 	})
 	r.GET("/location/", func(c *gin.Context) {
 		ipString := getIp(c.Request)
-		fmt.Printf("got ip:%s\n", ipString)
-		ip := net.ParseIP(ipString)
-		if ip == nil {
-			c.JSON(500, gin.H{
-				"message": "ip invalid",
-			})
-			return
-		}
-		if isPrivateIP(ip) {
-			c.JSON(200, &IpGeo{Organization: "-", Asn: 0, Country: "-",
-				Latitude: 0, Longitude: 0, CountryCode: "-", CountryCode3: "", Tz: "", Ip: ipString})
-			return
-		}
-		geo, er := query(ipString)
-		if er != nil {
-			c.JSON(500, er)
-			return
-		}
-		_, er = json.Marshal(geo)
-		c.JSON(200, geo)
-
+		handleIp(c, ipString)
 	})
 	r.Run(":7654")
 
