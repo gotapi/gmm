@@ -383,6 +383,10 @@ func main() {
 		var ip = c.Param("ip")
 		handleIp(c, ip)
 	})
+	r.GET("/location", func(c *gin.Context) {
+		ipString := getIp(c.Request)
+		handleIp(c, ipString)
+	})
 	r.GET("/location/", func(c *gin.Context) {
 		ipString := getIp(c.Request)
 		handleIp(c, ipString)
