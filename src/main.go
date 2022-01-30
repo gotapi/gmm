@@ -308,6 +308,7 @@ func getIp(r *http.Request) string {
 }
 
 func handleIpReq(c *gin.Context) {
+	c.Header("gmm-version", "1.0.1")
 	var ip = getIp(c.Request)
 	requestWith := c.Request.Header.Get("X-Requested-With")
 	var jsonp = c.Request.URL.Query().Get("jsonp")
