@@ -310,9 +310,13 @@ func getIp(r *http.Request) string {
 func handleIpReq(c *gin.Context) {
 	c.Header("gmm-version", "1.0.1")
 	var ip = getIp(c.Request)
-	requestWith := c.Request.Header.Get("X-Requested-With")
+	var format = strings.ToLower(c.Request.URL.Query().Get("format"))
 	var jsonp = c.Request.URL.Query().Get("jsonp")
 	var err error
+	if "json" == format {
+		c.JSON(200, HttpResult{Status: 200, Data: ip})
+		return
+	}
 	if len(jsonp) > 0 {
 		var targetJsonp = jsonp
 		if len(jsonp) > 16 {
@@ -322,12 +326,7 @@ func handleIpReq(c *gin.Context) {
 		_, err = c.Writer.Write([]byte(res))
 		return
 	}
-	if requestWith == "XMLHttpRequest" {
-		c.JSON(200, HttpResult{Status: 200, Data: ip})
-		return
-	} else {
-		_, err = c.Writer.Write([]byte(ip))
-	}
+	_, err = c.Writer.Write([]byte(ip))
 	if err != nil {
 		fmt.Printf("write data failed:%v\n", err)
 		return
