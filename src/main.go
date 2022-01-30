@@ -313,12 +313,13 @@ func handleIpReq(c *gin.Context) {
 	var jsonp = c.Request.URL.Query().Get("jsonp")
 	var err error
 	if len(jsonp) > 0 {
-		var realJsonP = jsonp
+		var targetJsonp = jsonp
 		if len(jsonp) > 16 {
-			realJsonP = jsonp[:16]
+			targetJsonp = jsonp[:16]
 		}
-		var res = jsonp + "(\"" + realJsonP + "\");"
+		var res = targetJsonp + "(\"" + ip + "\");"
 		_, err = c.Writer.Write([]byte(res))
+		return
 	}
 	if requestWith == "XMLHttpRequest" {
 		c.JSON(200, HttpResult{Status: 200, Data: ip})
