@@ -2,7 +2,7 @@ FROM renlu/telize
 MAINTAINER renlu<xurenlu@gmail.com>
 
 
-RUN apt install -y golang-1.17-go
+RUN apt-get update && apt install -y golang-1.18-go
 RUN mkdir /www/dev/gmm/
 COPY ./src/go.mod /www/dev/gmm/
 COPY ./src/go.sum /www/dev/gmm/
